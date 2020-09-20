@@ -1,15 +1,20 @@
 // Package bittorrent implements all of the abstractions used to decouple the
 // protocol of a BitTorrent tracker from the logic of handling Announces and
 // Scrapes.
+// Peer ID Conventions https://www.bittorrent.org/beps/bep_0020.html
 package bittorrent
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"time"
 
 	"github.com/chihaya/chihaya/pkg/log"
 )
+
+
+// peer_id of qBittorrent 4.1.6 : -qB4160--o6uEeljhnxx
 
 // PeerID represents a peer ID.
 type PeerID [20]byte
@@ -25,6 +30,15 @@ func PeerIDFromBytes(b []byte) (PeerID, error) {
 
 	copy(buf[:], b)
 	return PeerID(buf), nil
+}
+
+func PeerIDFromBytesRightPad(b []byte) PeerID {
+	var buf [20]byte
+	copy(buf[:len(b)], b)
+	if len(b) < 20 {
+		copy(buf[len(b):], bytes.Repeat([]byte{' '}, 20 - len(b)))
+	}
+	return PeerID(buf)
 }
 
 // String implements fmt.Stringer, returning the base16 encoded PeerID.
@@ -114,9 +128,9 @@ func PassKeyFromString(s string) (PassKey, error) {
 	return PassKey(buf), nil
 }
 
-// String implements fmt.Stringer, returning the base16 encoded PassKey.
+// String implements fmt.Stringer, returning the string
 func (i PassKey) String() string {
-	return fmt.Sprintf("%x", i[:])
+	return string(i[:])
 }
 
 // RawString returns a 32-byte string of the raw bytes of the PassKey.
@@ -143,6 +157,9 @@ type AnnounceRequest struct {
 	EventProvided   bool
 	NumWantProvided bool
 	IPProvided      bool
+	IsTLS	 		bool // for client checker
+	UserAgent       string // for client checker
+
 	NumWant         uint32  // optional
 
 	Left            uint64
