@@ -16,15 +16,15 @@ type PeerID [20]byte
 
 // PeerIDFromBytes creates a PeerID from a byte slice.
 //
-// It panics if b is not 20 bytes long.
-func PeerIDFromBytes(b []byte) PeerID {
+// It returns error if b is not 20 bytes long.
+func PeerIDFromBytes(b []byte) (PeerID, error) {
+	var buf [20]byte
 	if len(b) != 20 {
-		panic("peer ID must be 20 bytes")
+		return buf, fmt.Errorf("peer ID must be 20 bytes")
 	}
 
-	var buf [20]byte
 	copy(buf[:], b)
-	return PeerID(buf)
+	return PeerID(buf), nil
 }
 
 // String implements fmt.Stringer, returning the base16 encoded PeerID.
@@ -39,15 +39,14 @@ func (p PeerID) RawString() string {
 
 // PeerIDFromString creates a PeerID from a string.
 //
-// It panics if s is not 20 bytes long.
-func PeerIDFromString(s string) PeerID {
-	if len(s) != 20 {
-		panic("peer ID must be 20 bytes")
-	}
-
+// It returns error if s is not 20 bytes long.
+func PeerIDFromString(s string) (PeerID, error) {
 	var buf [20]byte
+	if len(s) != 20 {
+		return buf, fmt.Errorf("peer ID must be 20 bytes")
+	}
 	copy(buf[:], s)
-	return PeerID(buf)
+	return PeerID(buf), nil
 }
 
 // InfoHash represents an infohash.
@@ -55,28 +54,26 @@ type InfoHash [20]byte
 
 // InfoHashFromBytes creates an InfoHash from a byte slice.
 //
-// It panics if b is not 20 bytes long.
-func InfoHashFromBytes(b []byte) InfoHash {
-	if len(b) != 20 {
-		panic("infohash must be 20 bytes")
-	}
-
+// It returns error if b is not 20 bytes long.
+func InfoHashFromBytes(b []byte) (InfoHash, error) {
 	var buf [20]byte
+	if len(b) != 20 {
+		return buf, fmt.Errorf("infohash must be 20 bytes")
+	}
 	copy(buf[:], b)
-	return InfoHash(buf)
+	return InfoHash(buf), nil
 }
 
 // InfoHashFromString creates an InfoHash from a string.
 //
-// It panics if s is not 20 bytes long.
-func InfoHashFromString(s string) InfoHash {
-	if len(s) != 20 {
-		panic("infohash must be 20 bytes")
-	}
-
+// It returns error if s is not 20 bytes long.
+func InfoHashFromString(s string) (InfoHash, error) {
 	var buf [20]byte
+	if len(s) != 20 {
+		return buf, fmt.Errorf("infohash must be 20 bytes")
+	}
 	copy(buf[:], s)
-	return InfoHash(buf)
+	return InfoHash(buf), nil
 }
 
 // String implements fmt.Stringer, returning the base16 encoded InfoHash.
@@ -89,20 +86,70 @@ func (i InfoHash) RawString() string {
 	return string(i[:])
 }
 
+
+// PassKey represents an user idendifier for Private Tracker.
+type PassKey [32]byte
+
+// PassKeyFromBytes creates an PassKey from a byte slice.
+//
+// It returns error if b is not 32 bytes long.
+func PassKeyFromBytes(b []byte) (PassKey,error) {
+	var buf [32]byte
+	if len(b) != 32 {
+		return buf, fmt.Errorf("PassKey must be 32 bytes")
+	}
+	copy(buf[:], b)
+	return PassKey(buf), nil
+}
+
+// PassKeyFromString creates an PassKey from a string.
+//
+// It returns error if s is not 32 bytes long.
+func PassKeyFromString(s string) (PassKey, error) {
+	var buf [32]byte
+	if len(s) != 32 {
+		return buf, fmt.Errorf("PassKey must be 32 bytes")
+	}
+	copy(buf[:], s)
+	return PassKey(buf), nil
+}
+
+// String implements fmt.Stringer, returning the base16 encoded PassKey.
+func (i PassKey) String() string {
+	return fmt.Sprintf("%x", i[:])
+}
+
+// RawString returns a 32-byte string of the raw bytes of the PassKey.
+func (i PassKey) RawString() string {
+	return string(i[:])
+}
+
+
+// get string "passkey", "info_hash", "peer_id",       "event"
+// int "port", "downloaded", "uploaded", "left",       "compact", "no_peer_id"
+// required "passkey", "info_hash", "peer_id",
+// required "port", "downloaded", "uploaded", "left"
+// 20 bytes "info_hash", "peer_id"
+// 32 bytes "passkey"
 // AnnounceRequest represents the parsed parameters from an announce request.
 type AnnounceRequest struct {
-	Event           Event
+	PassKey         PassKey
 	InfoHash        InfoHash
-	Compact         bool
+
+	Event           Event        // optional
+	Compact         bool     // optional
+	NoPeerId        bool	// optional
+
 	EventProvided   bool
 	NumWantProvided bool
 	IPProvided      bool
-	NumWant         uint32
+	NumWant         uint32  // optional
+
 	Left            uint64
 	Downloaded      uint64
 	Uploaded        uint64
 
-	Peer
+	Peer  // peer_id ip port
 	Params
 }
 
@@ -150,6 +197,7 @@ func (r AnnounceResponse) LogFields() log.Fields {
 
 // ScrapeRequest represents the parsed parameters from a scrape request.
 type ScrapeRequest struct {
+	PassKey       PassKey
 	AddressFamily AddressFamily
 	InfoHashes    []InfoHash
 	Params        Params

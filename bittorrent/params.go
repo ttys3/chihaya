@@ -168,10 +168,11 @@ func parseQuery(query string) (q *QueryParams, err error) {
 		}
 
 		if key == "info_hash" {
-			if len(value) != 20 {
+			infohash, err := InfoHashFromString(value)
+			if err != nil {
 				return nil, ErrInvalidInfohash
 			}
-			q.infoHashes = append(q.infoHashes, InfoHashFromString(value))
+			q.infoHashes = append(q.infoHashes, infohash)
 		} else {
 			q.params[strings.ToLower(key)] = value
 		}
