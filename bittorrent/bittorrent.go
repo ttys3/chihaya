@@ -247,9 +247,9 @@ func (sr ScrapeResponse) LogFields() log.Fields {
 // Scrape represents the state of a swarm that is returned in a scrape response.
 type Scrape struct {
 	InfoHash   InfoHash
-	Snatches   uint32
-	Complete   uint32
-	Incomplete uint32
+	Snatches   uint32 // Downloaded
+	Complete   uint32 // active completed , aka seeders
+	Incomplete uint32 // active incompleted, aka leechers
 }
 
 // AddressFamily is the address family of an IP address.
