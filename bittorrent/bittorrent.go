@@ -159,6 +159,7 @@ type AnnounceRequest struct {
 	IPProvided      bool
 	IsTLS	 		bool // for client checker
 	UserAgent       string // for client checker
+	Key 			string // for dual stack announce
 
 	NumWant         uint32  // optional
 
